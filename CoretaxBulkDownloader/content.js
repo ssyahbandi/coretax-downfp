@@ -1,219 +1,91 @@
-class CoretaxBulkDownloader {
+class SimpleDocDownloader {
     constructor() {
-        this.successCount = 0;
-        this.failedRows = [];
-        this.selectedRows = [];
-        this.init();
+        this.createUI();
     }
 
-    init() {
-        // Tampilkan peringatan risiko hukum (sekali saja)
-        chrome.storage.local.get(['hideWarning'], (result) => {
-            if (!result.hideWarning) {
-                this.showWarningModal();
-            } else {
-                this.createDownloadPanel();
-            }
-        });
-    }
+    // Bikin tombol download dan progress bar
+    createUI() {
+        // Tombol "Download Dokumen"
+        const button = document.createElement('button');
+        button.textContent = 'Download Dokumen';
+        button.style.position = 'fixed';
+        button.style.bottom = '20px';
+        button.style.left = '20px';
+        button.style.zIndex = '10000';
+        button.style.padding = '10px';
+        button.style.backgroundColor = '#28a745'; // Hijau
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '5px';
+        button.addEventListener('click', () => this.startDownload());
+        document.body.appendChild(button);
 
-    showWarningModal() {
-        const modal = document.createElement('div');
-        modal.className = 'filter-modal';
-        modal.innerHTML = `
-            <div class="filter-modal-content">
-                <h2>Peringatan</h2>
-                <p>Otomatisasi unduhan mungkin melanggar kebijakan Coretax dan dapat menyebabkan pemblokiran akun. Lanjutkan?</p>
-                <label><input type="checkbox" id="dontShowAgain"> Jangan tampilkan lagi</label>
-                <div>
-                    <button onclick="this.closest('.filter-modal').remove(); new CoretaxBulkDownloader().createDownloadPanel();">Lanjutkan</button>
-                    <button onclick="this.closest('.filter-modal').remove();" style="background-color: #e63946;">Batal</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-
-        modal.querySelector('#dontShowAgain').addEventListener('change', (e) => {
-            chrome.storage.local.set({ hideWarning: e.target.checked });
-        });
-    }
-
-    createDownloadPanel() {
-        const panel = document.createElement('div');
-        panel.className = 'download-panel';
-
-        const selectAllBtn = document.createElement('button');
-        selectAllBtn.className = 'select-all-btn';
-        selectAllBtn.textContent = 'Pilih Semua';
-        selectAllBtn.addEventListener('click', () => this.selectAllRows());
-
-        const filterBtn = document.createElement('button');
-        filterBtn.className = 'filter-btn';
-        filterBtn.textContent = 'Filter Dokumen';
-        filterBtn.addEventListener('click', () => this.showFilterModal());
-
-        const downloadBtn = document.createElement('button');
-        downloadBtn.className = 'download-btn';
-        downloadBtn.textContent = 'Download Dokumen';
-        downloadBtn.addEventListener('click', () => this.startDownload());
-
+        // Progress bar
         const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.innerHTML = '<div class="progress-fill"></div>';
+        progressBar.style.position = 'fixed';
+        progressBar.style.bottom = '60px';
+        progressBar.style.left = '20px';
+        progressBar.style.width = '200px';
+        progressBar.style.height = '20px';
+        progressBar.style.backgroundColor = '#ddd'; // Abu-abu
+        progressBar.style.borderRadius = '5px';
+        progressBar.style.overflow = 'hidden';
 
-        panel.appendChild(selectAllBtn);
-        panel.appendChild(filterBtn);
-        panel.appendChild(downloadBtn);
-        panel.appendChild(progressBar);
-        document.body.appendChild(panel);
+        const progressFill = document.createElement('div');
+        progressFill.style.height = '100%';
+        progressFill.style.width = '0%'; // Mulai dari 0
+        progressFill.style.backgroundColor = '#28a745';
+        progressFill.style.transition = 'width 0.3s ease'; // Animasi halus
+        progressBar.appendChild(progressFill);
+        document.body.appendChild(progressBar);
 
-        this.progressBar = progressBar.querySelector('.progress-fill');
+        this.progressFill = progressFill;
     }
 
-    selectAllRows() {
-        const rows = document.querySelectorAll('table tbody tr');
-        rows.forEach(row => {
-            const checkbox = row.querySelector('input[type="checkbox"]');
-            if (checkbox) checkbox.checked = true;
-        });
-    }
-
-    showFilterModal() {
-        const modal = document.createElement('div');
-        modal.className = 'filter-modal';
-        modal.innerHTML = `
-            <div class="filter-modal-content">
-                <h2>Filter Dokumen</h2>
-                <label for="filterDate">Tanggal (contoh: 2025-03):</label>
-                <input type="text" id="filterDate" placeholder="Masukkan tanggal">
-                <label for="filterBuyer">Nama Pembeli:</label>
-                <input type="text" id="filterBuyer" placeholder="Masukkan nama pembeli">
-                <div>
-                    <button onclick="new CoretaxBulkDownloader().applyFilter(this.closest('.filter-modal'));">Terapkan</button>
-                    <button onclick="this.closest('.filter-modal').remove();" style="background-color: #e63946;">Batal</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
-
-    applyFilter(modal) {
-        const filterDate = modal.querySelector('#filterDate').value;
-        const filterBuyer = modal.querySelector('#filterBuyer').value.toLowerCase();
-        const rows = document.querySelectorAll('table tbody tr');
-        this.selectedRows = Array.from(rows).filter(row => {
-            const dateCell = row.querySelector('td:nth-child(7)'); // Asumsi kolom tanggal
-            const buyerCell = row.querySelector('td:nth-child(4)'); // Asumsi kolom pembeli
-            const date = dateCell?.innerText.trim() || '';
-            const buyer = buyerCell?.innerText.trim().toLowerCase() || '';
-            return (!filterDate || date.includes(filterDate)) &&
-                   (!filterBuyer || buyer.includes(filterBuyer));
-        });
-        modal.remove();
-        this.selectFilteredRows();
-    }
-
-    selectFilteredRows() {
-        const rows = document.querySelectorAll('table tbody tr');
-        rows.forEach(row => {
-            const checkbox = row.querySelector('input[type="checkbox"]');
-            if (checkbox) {
-                checkbox.checked = this.selectedRows.includes(row);
-            }
-        });
-    }
-
+    // Mulai proses download
     async startDownload() {
-        const rows = document.querySelectorAll('table tbody tr');
+        // Ambil semua baris di tabel
+        const rows = document.querySelectorAll('table.p-datatable-table tbody tr');
         const selectedRows = Array.from(rows).filter(row => {
             const checkbox = row.querySelector('input[type="checkbox"]');
             return checkbox && checkbox.checked;
         });
 
+        // Kalo nggak ada yang dipilih
         if (selectedRows.length === 0) {
-            this.showSummaryModal('Harap pilih setidaknya satu dokumen.');
+            alert('Harap pilih setidaknya satu dokumen.');
             return;
         }
 
-        this.successCount = 0;
-        this.failedRows = [];
-        let idx = 0;
+        const total = selectedRows.length;
+        let completed = 0;
 
-        const processBatch = async () => {
-            if (idx >= selectedRows.length) {
-                this.showSummaryModal();
-                this.saveHistory();
-                return;
+        // Loop buat unduh tiap dokumen
+        for (const row of selectedRows) {
+            const downloadBtn = row.querySelector('button#DownloadButton') || 
+                               row.querySelector('button[aria-label*="unduh"], button[aria-label*="download"]') || 
+                               row.querySelector('button[title*="unduh"], button[title*="download"]');
+            if (downloadBtn) {
+                downloadBtn.click(); // Klik tombol unduh
+                completed++;
+                const percentage = (completed / total) * 100;
+                this.progressFill.style.width = `${percentage}%`; // Update progress bar
+                await this.sleep(1000); // Jeda 1 detik
+            } else {
+                console.log('Tombol unduh nggak ketemu di baris ini.');
+                row.style.border = '2px solid red'; // Tandain baris yang gagal
             }
+        }
 
-            const batchSize = await new Promise(resolve => {
-                chrome.storage.local.get(['parallelDownloads'], (result) => {
-                    resolve(result.parallelDownloads || 3);
-                });
-            });
-
-            const batch = selectedRows.slice(idx, idx + batchSize);
-            await Promise.all(batch.map(async (row) => {
-                try {
-                    const downloadBtn = row.querySelector('button, a');
-                    if (downloadBtn && downloadBtn.innerText.toLowerCase().includes('unduh')) {
-                        downloadBtn.click();
-                        this.successCount++;
-                    } else {
-                        this.failedRows.push(row);
-                    }
-                } catch (error) {
-                    this.failedRows.push(row);
-                }
-            }));
-
-            idx += batchSize;
-            this.updateProgress(idx, selectedRows.length);
-
-            const delay = await new Promise(resolve => {
-                chrome.storage.local.get(['downloadDelay'], (result) => {
-                    resolve(result.downloadDelay || 1000);
-                });
-            });
-            setTimeout(processBatch, delay + Math.random() * 500); // Penundaan acak
-        };
-
-        processBatch();
+        // Kasih tau kalo udah selesai
+        alert(`Unduhan selesai. ${completed} dari ${total} dokumen berhasil diunduh.`);
     }
 
-    updateProgress(current, total) {
-        const percentage = (current / total) * 100;
-        this.progressBar.style.width = `${percentage}%`;
-    }
-
-    showSummaryModal(message) {
-        const modal = document.createElement('div');
-        modal.className = 'summary-modal';
-        modal.innerHTML = `
-            <div class="summary-modal-content">
-                <h2>Ringkasan Unduhan</h2>
-                ${message ? `<p>${message}</p>` : `
-                    <p>Berhasil: ${this.successCount} dokumen</p>
-                    <p>Gagal: ${this.failedRows.length} dokumen</p>
-                `}
-                <button onclick="this.closest('.summary-modal').remove();">Tutup</button>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
-
-    saveHistory() {
-        chrome.storage.local.get(['downloadHistory'], (result) => {
-            const history = result.downloadHistory || [];
-            history.push({
-                timestamp: new Date().toISOString(),
-                success: this.successCount,
-                failed: this.failedRows.length
-            });
-            if (history.length > 10) history.shift(); // Simpan maksimum 10 entri
-            chrome.storage.local.set({ downloadHistory: history });
-        });
+    // Fungsi buat jeda
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
-new CoretaxBulkDownloader();
+// Jalankan ekstensinya
+new SimpleDocDownloader();
