@@ -57,20 +57,23 @@
 	- Buka popup ekstensi untuk melihat riwayat unduhan terbaru.
 	- Klik "Hapus Riwayat" untuk membersihkan riwayat jika diperlukan.
 
-## Tangkapan Layar
-	*(Tambahkan tangkapan layar jika diperlukan, misalnya:)*
-	- Panel unduhan di halaman Coretax.
-	- Popup pengaturan dan riwayat.
-	- Modal filter dokumen.
+## Tangkapan Layar 
+
+*(Tambahkan tangkapan layar jika diperlukan, misalnya:)*
+- Panel unduhan di halaman Coretax.
+- Popup pengaturan dan riwayat.
+- Modal filter dokumen.
 
 ## Peringatan Risiko
-	- **Bukan Aplikasi Resmi**: Ekstensi ini tidak berafiliasi dengan Coretax atau Direktorat Jenderal Pajak. Penggunaan ekstensi ini sepenuhnya merupakan tanggung jawab pengguna.
-	- **Potensi Pemblokiran Akun**: Coretax mungkin melarang otomatisasi unduhan. Penggunaan ekstensi ini dapat menyebabkan pemblokiran akun atau tindakan hukum dari pihak berwenang.
-	- **Perubahan Situs**: Jika Coretax memperbarui struktur situsnya, ekstensi ini mungkin tidak berfungsi dengan baik. Laporkan masalah ke pengembang untuk perbaikan.
+
+- **Bukan Aplikasi Resmi**: Ekstensi ini tidak berafiliasi dengan Coretax atau Direktorat Jenderal Pajak. Penggunaan ekstensi ini sepenuhnya merupakan tanggung jawab pengguna.
+- **Potensi Pemblokiran Akun**: Coretax mungkin melarang otomatisasi unduhan. Penggunaan ekstensi ini dapat menyebabkan pemblokiran akun atau tindakan hukum dari pihak berwenang.
+- **Perubahan Situs**: Jika Coretax memperbarui struktur situsnya, ekstensi ini mungkin tidak berfungsi dengan baik. Laporkan masalah ke pengembang untuk perbaikan.
 
 ## Kompatibilitas
-	- Ekstensi ini dirancang untuk bekerja dengan situs Coretax pada April 2025. Perubahan pada situs mungkin memengaruhi fungsionalitas.
-	- Hanya diuji pada Chrome. Dukungan untuk browser lain (misalnya, Firefox) belum tersedia.
+
+- Ekstensi ini dirancang untuk bekerja dengan situs Coretax pada April 2025. Perubahan pada situs mungkin memengaruhi fungsionalitas.
+- Hanya diuji pada Chrome. Dukungan untuk browser lain (misalnya, Firefox) belum tersedia.
 
 ## Kontribusi
 Proyek ini dibuat untuk keperluan pribadi dan saat ini tidak menerima kontribusi. Namun, jika Anda memiliki saran atau menemukan bug, silakan hubungi saya (lihat bagian Kontak di bawah).
