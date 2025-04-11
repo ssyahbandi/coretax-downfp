@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Coretax Bulk Downloader",
+  "version": "1.0",
+  "description": "Ekstensi untuk mengunduh dokumen pajak secara massal dari Coretax dengan fitur filter dan riwayat.",
+  "host_permissions": [
+    "https://coretaxdjp.pajak.go.id/e-invoice-portal/*",
+    "https://coretaxdjp.pajak.go.id/withholding-slips-portal/*",
+    "https://coretaxdjp.pajak.go.id/returnsheets-portal/*"
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://coretaxdjp.pajak.go.id/e-invoice-portal/*",
+        "https://coretaxdjp.pajak.go.id/withholding-slips-portal/*",
+        "https://coretaxdjp.pajak.go.id/returnsheets-portal/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
